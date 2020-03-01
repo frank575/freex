@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Freex</title>
+</head>
+
+<style>
+  body,
+  html {
+    background: #1b1b1b;
+    color: #ddd;
+  }
+</style>
+
+<body>
+  <a href="" target="_blank">link</a>
+  <input id="input" type="text">
+  <button onclick="handlerClick()">sync</button>
+  <div id="body"></div>
+  <script src="freex@cdn.js"></script>
+  <script>
+    const $body = document.getElementById(`body`)
+
+    function handlerClick() {
+      const input = document.getElementById(`input`)
+      const val = input.value
+      // fx.state['使用者'].name = val
+      // fx.set('user/name', val)
+      fx.commit('使用者/setName', val)
+      // console.log(fx.state['使用者'].name)
+      $body.innerHTML = fx.state['使用者'].name
+      fx.sync('commit', '使用者/inner')
+    }
+    const user = {
+      saves: ['name'],
+      state: {
+        name: 'frank'
+      },
+      getters: {
+        fullName() {
+          return this.getters.number + ' ' + this.state.name + ' wu'
+        },
+        number() {
+          return 'No.064'
+        }
+      },
+      mutations: {
+        test(a, b) {
+          console.log('twsttt', a, b)
+        },
+        async hello(name) {
+          console.log(this, name)
+          // this.commit('setName', 'jgg')
+          const tip = await this.dispatch('login', this.state.name)
+          console.log(tip)
+          // console.log(state)
+          // console.log('hello ' + state.name)
+        },
+        setName(name) {
+          console.log('user/setName doing!')
+          this.state.name = name
+        },
+        inner() {
+          $body.innerHTML = this.state.name
+        }
+      },
+      actions: {
+        test(a, b) {
+          console.log(a, b)
+        },
+        login(name) {
+          return new Promise((reslove, reject) => {
+            setTimeout(() => {
+              reslove(name + ' login success!')
+            }, 1000)
+          })
+        }
+      },
+      modules: {
+        child: {
+          saves: ['name'],
+          state: {
+            name: 'jeff'
+          },
+          getters: {
+            chGet() {
+              return 'child/get'
+            }
+          },
+          mutations: {
+            chSay() {
+              console.log(this.commit('chSay2'), this)
+              console.log(123)
+            },
+            chSay2() {
+              // alert('123')
+            }
+          }
+        }
+      }
+    }
+    const global = {
+      state: {
+        gName: 'global'
+      },
+      getters: {
+        hello() {
+          console.log(this.state, this.getters, '213')
+          return 'hello global getters'
+        }
+      },
+      mutations: {
+        say() {
+          console.log(this, 'global')
+          return this.getters.hello
+        }
+      },
+      actions: {
+        acSay() {
+          console.log(this, 'globalactions')
+          this.commit('say')
+        }
+      },
+      modules: {
+        gg: {
+          state: {
+            gg: 'gg'
+          },
+        mutations: {
+        ggSay() {
+          console.log(this)
+        }}
+        },
+      }
+    }
+    const modules = {
+      '使用者': user,
+      '/': global
+    }
+    // const fx = new Freex(modules)
+    // fx._rootModules.user._modules.state.name = 'ggg'
+    const fx = new Freex(modules, {
+      save: true
+    })
+    console.log(fx.state['/'].gg)
+    fx.commit('//say')
+    fx.commit('//gg/ggSay')
+    fx.dispatch('//acSay')
+    console.log(777, fx.getters['使用者'].fullName)
+    fx.commit('使用者/test', '123', '666')
+    fx.commit('使用者/child/chSay', '123', '666')
+    fx.dispatch('使用者/test', '123', '666')
+    fx.use(function() {
+      console.log(this.state['使用者'].name, 'use method')
+    })
+    console.log(fx)
+    $body.innerHTML = fx.state['使用者'].name
+    fx.commit('使用者/hello', 'hello')
+    // fx.state['使用者'].name = 'ssss'
+    // fx.set('user/child/name', 'fff')
+    document.getElementById(`input`).addEventListener(`input`, e => {
+      console.log(e.target.value, 213)
+      fx.set('使用者/name', e.target.value)
+      $body.innerHTML = fx.state['使用者'].name
+      fx.sync('commit', '使用者/inner')
+    })
+    // ;
+    // (async () => {
+    //   await fx.dispatch('user/logisn')
+    //   fx.commit('user/child/chSay2')
+
+    //   console.log(fx)
+    //   console.log(fx.state['使用者'])
+    // })()
+  </script>
+</body>
+
+</html>
