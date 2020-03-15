@@ -2,6 +2,8 @@
 
 > 超輕量的 Vue 狀態管理，寫法與 .vue 相似
 
+[demo](https://codesandbox.io/s/freex-demo-zodih)
+
 #### 支持：
 1. 永久數據儲存
 2. 跨狀態/全js調用
