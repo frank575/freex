@@ -1,5 +1,4 @@
 export let store = null
-export const sync = () => {}
 export const handler = (moduleName, key) => {
   return {
     get() {
@@ -72,7 +71,7 @@ export default modules => Vue => {
       }
     }
   }
-  // 登入注入資料
+  // 初始化永久數據保存
   if (Object.keys(saves).length) {
     const storage = localStorage.fx
     if (storage) {
@@ -84,7 +83,6 @@ export default modules => Vue => {
           _store[moduleKey]._data[key] = value
         }
       }
-      console.log(_store)
     } else {
       setItem()
     }
@@ -98,6 +96,7 @@ export default modules => Vue => {
       }
     },
   })
+  window.addEventListener(`beforeunload`, setItem)
   store = _store
   Vue.prototype.$fx = _store
   function setItem() {
