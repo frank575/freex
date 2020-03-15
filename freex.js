@@ -31,14 +31,15 @@ export const mapf = (moduleName, keys = []) => {
 }
 export default modules => Vue => {
   const _store = {}
-  const saves = {}
+  const saves = []
   for (const key in modules) {
     const module = modules[key]
     const isSave = module.save
     let curStore
     _store[key] = { $fx: _store }
     curStore = _store[key]
-    isSave && (saves[key] = modules[key].data)
+    curStore._data = {}
+    isSave && saves.push(key)
     for (const moduleKey in module) {
       if (moduleKey !== 'save') {
         const curModule = module[moduleKey]
@@ -53,15 +54,14 @@ export default modules => Vue => {
             })
           } else {
             curStore[contentKey] = curContnet
+            curStore._data[contentKey] = curContnet
             if (isSave && moduleKey === 'data') {
               Object.defineProperty(curStore, contentKey, {
                 get() {
-                  return curContnet
+                  return curStore._data[contentKey]
                 },
                 set(val) {
-                  curContnet = val
-                  curModule[contentKey] = val
-                  console.log(val)
+                  curStore._data[contentKey] = val
                   setItem()
                 },
                 enumerable: true,
@@ -81,9 +81,10 @@ export default modules => Vue => {
         const module = compileStorage[moduleKey]
         for (let key in module) {
           const value = module[key]
-          _store[moduleKey] = value
+          _store[moduleKey]._data[key] = value
         }
       }
+      console.log(_store)
     } else {
       setItem()
     }
@@ -100,11 +101,10 @@ export default modules => Vue => {
   store = _store
   Vue.prototype.$fx = _store
   function setItem() {
-    console.log(7)
     const saveData = {}
-    for (let k in saves) {
-      saveData[k] = saves[k]
-    }
+    saves.forEach(key => {
+      saveData[key] = _store[key]._data
+    })
     localStorage.setItem('fx', JSON.stringify(saveData))
   }
 }
